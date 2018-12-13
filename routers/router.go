@@ -3,6 +3,7 @@ package routers
 import (
 	"gin-test/middleware"
 	"gin-test/routers/api/login"
+	"gin-test/routers/api/wx"
 	"github.com/gin-gonic/gin"
 	"github.com/tommy351/gin-sessions"
 
@@ -17,9 +18,12 @@ func InitRouter() *gin.Engine {
 
 	r.Use(gin.Recovery())
 
+	//限制上传文件大小
+	r.MaxMultipartMemory = 8 << 20
+
 	//设置session midddleware
 	store := sessions.NewCookieStore([]byte("mysession"))
-	r.Use(sessions.Middleware("mysession",store))
+	r.Use(sessions.Middleware("mysession", store))
 
 	gin.SetMode(setting.RunMode)
 
@@ -61,6 +65,20 @@ func InitRouter() *gin.Engine {
 		apiv1.PUT("/users/:id", v1.EditUser)
 		//删除指定用户
 		apiv1.DELETE("/users/:id", v1.DeleteUser)
+
+		//上传文件
+		apiv1.POST("/files", v1.Uploadfile)
+	}
+	apiv2 := r.Group("/api/v2")
+	{
+		apiv2.POST("/upload", v1.Uploadfile)
+	}
+	//微信服务器接口
+	weChatR := r.Group("/weChatCore")
+	//weChatR.Use(middleware.AccessTokenMiddleware())
+	{
+		weChatR.GET("/get", wx.GetWeChatCore)
+
 	}
 	return r
 }
